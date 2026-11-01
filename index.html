@@ -95,6 +95,9 @@ footer button:active{transform:scale(.97)}
 .sheet label{display:flex;flex-direction:column;gap:6px;font-weight:600}
 .sheet select,.sheet input{font:inherit;min-height:44px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);padding:0 10px}
 .row{display:flex;gap:10px;flex-wrap:wrap}
+.sheet label.check{flex-direction:row;align-items:center;gap:10px;font-weight:500}
+.sheet label.check input{width:24px;height:24px;min-height:0}
+.sheet .box{max-height:calc(100% - 20px);overflow-y:auto}
 .row button{flex:1;min-height:52px;border-radius:10px;border:1px solid var(--line);background:var(--bg);font-family:var(--f-display);font-weight:700;font-size:18px;text-transform:uppercase;letter-spacing:.04em}
 .row .primary{background:var(--amber);border-color:var(--amber);color:var(--amber-ink)}
 .row .danger{color:#e5484d;border-color:#e5484d}
@@ -138,7 +141,11 @@ footer button:active{transform:scale(.97)}
 <div class="sheet" id="settings" hidden>
   <div class="box">
     <h2>Impostazioni</h2>
-    <label for="voiceSel">Voce italiana<select id="voiceSel"></select></label>
+    <label for="voiceSel">Voce<select id="voiceSel"></select></label>
+    <p id="voiceCount"></p>
+    <label class="check" for="allLang"><input type="checkbox" id="allLang"> Mostra anche voci di altre lingue</label>
+    <p>Hai scaricato una voce nuova? Chiudi del tutto l'app (o Safari) e riaprila, poi tocca «Aggiorna elenco voci».</p>
+    <div class="row"><button id="reloadVoices">Aggiorna elenco voci</button></div>
     <label for="rate">Velocità di lettura <input id="rate" type="range" min="0.7" max="1.4" step="0.05" value="1"></label>
     <label for="theme">Aspetto<select id="theme"><option value="">Come il sistema</option><option value="dark">Notte (scuro)</option><option value="light">Giorno (chiaro)</option></select></label>
     <p>Tasti per pulsantiera Bluetooth o tastiera: Spazio/Invio = conferma la voce corrente, ← = Indietro, → = Salta, R = Rileggi.</p>
@@ -151,10 +158,11 @@ footer button:active{transform:scale(.97)}
 const DATA = [
  ["Prima dell'avviamento motore", [
   ["Porte","CHIUSE e bloccate"],["Sedili, cinture di sicurezza","REGOLATI e ALLACCIATI"],["Main BAT e tutti gli interruttori","OFF"],
-  ["Freno di parcheggio","INSERITO"],["Breakers","tutti INSERITI"],["Manetta","TUTTA INDIETRO"],["Leva miscela","TUTTA INDIETRO"],
+  ["Freno di parcheggio","INSERITO"],["Controllo fusibili e magnetotermici","tutti INSERITI"],["Manetta","TUTTA INDIETRO"],["Leva miscela","TUTTA INDIETRO"],
   ["Leva elica","TUTTA AVANTI"],["Briefing sicurezza","OK"]]],
  ["Avviamento motore", [
-  ["Interruttore Master e Avionica","ON sequenzialmente"],["Indicatore batteria principale","Settore giallo o verde"],
+  ["Interruttore Master e Avionica","Accendere sequenzialmente"],["Indicatore batteria principale","Settore giallo o verde"],
+  ["ACP (Audio Control Panel)","verificare e impostare COM 2"],["Allineamento radio COM2 su Garmin G3X","premere 2 volte il tasto «Continue» su Garmin GTN"],
   ["Flap","SETTARE 1ª TACCA"],["Selettore carburante","SERBATOIO PIÙ VUOTO"],["Luci strobo","ON"],["Manetta","leggermente aperta"],
   ["Leva miscela","avanti TUTTA RICCA"],["Pompa carburante","ON 3-4 secondi poi OFF"],["Leva miscela","TUTTA INDIETRO"],
   ["Pulsanti accensione","ON ENTRAMBI"],["Area","LIBERA"],
@@ -163,8 +171,7 @@ const DATA = [
  ["Dopo l'avviamento motore", [
   ["Indicatore batteria principale","13 - 14 Volt"],["Interruttore Gener","ON"],["Indicatore AMP","da -2 a 0"],
   ["Interruttore batteria di riserva","ON"],["Indicatore batteria principale","Settore verde"],["Indicatore batteria di riserva","Settore verde"],
-  ["Luci di navigazione","ON"],["Luci strobo verificate","ON"],["ACP (Audio Control Panel)","verificare e impostare COM 2"],
-  ["Garmin 650","2 volte Continue per Radio"],["Transponder","ON e SBY"],["Altimetro","IMPOSTATO"],["Trim","neutri o secondo necessità"]]],
+  ["Luci di navigazione","ON"],["Luci strobo verificate","ON"],["Transponder","ON e SBY"],["Altimetro","IMPOSTATO"],["Trim","neutri o secondo necessità"]]],
  ["Rullaggio", [
   ["Strumenti di volo","VERIFICATI"],["Luce Taxi","ON"],["Freno di parcheggio","DISINSERITO"],["Freni","VERIFICATI"]]],
  ["Punto attesa - Prova motore", [
@@ -190,24 +197,43 @@ const DATA = [
 ];
 
 const $=id=>document.getElementById(id);
-const KEY="rv10-checklist-v2";
+const KEY="rv10-checklist-v5";
 let st={sec:0,cur:0,done:DATA.map(s=>s[1].map(()=>false)),voice:true,rate:1,voiceName:"",theme:""};
 try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.done&&s.done.length===DATA.length&&s.done.every((d,i)=>d.length===DATA[i][1].length))st=Object.assign(st,s)}catch(e){}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
 
 /* ---------- voce ---------- */
 const synth=window.speechSynthesis;let voices=[];
-function loadVoices(){
-  if(!synth)return;
-  voices=synth.getVoices().filter(v=>/^it/i.test(v.lang));
-  const sel=$("voiceSel");sel.innerHTML="";
-  if(!voices.length){sel.innerHTML='<option>Voce predefinita</option>';return}
-  voices.forEach(v=>{const o=document.createElement("option");o.value=v.name;o.textContent=v.name+(v.localService?"":" (online)");sel.appendChild(o)});
-  if(!st.voiceName||!voices.some(v=>v.name===st.voiceName)){
-    const pref=voices.find(v=>/enhanced|avanzat|premium/i.test(v.name))||voices.find(v=>v.localService)||voices[0];st.voiceName=pref.name}
-  sel.value=st.voiceName;
+function vQuality(v){
+  const u=(v.voiceURI||"")+" "+v.name;
+  if(/premium/i.test(u))return "Premium";
+  if(/enhanced|avanzat|migliorat/i.test(u))return "Avanzata";
+  if(/siri/i.test(u))return "Siri";
+  if(/google/i.test(u))return v.localService?"Google":"Google online";
+  return v.localService?"Standard":"Online";
 }
-if(synth){loadVoices();synth.onvoiceschanged=loadVoices}
+const vRank=q=>({Premium:0,Avanzata:1,Siri:2,Google:3,Standard:4}[q]??5);
+function loadVoices(){
+  if(!synth)return 0;
+  const all=synth.getVoices();
+  const showAll=$("allLang").checked;
+  const seen=new Set();
+  voices=all.filter(v=>showAll||/^it/i.test(v.lang)).filter(v=>{const k=v.voiceURI||v.name+v.lang;if(seen.has(k))return false;seen.add(k);return true});
+  voices.sort((x,y)=>(/^it/i.test(x.lang)?0:1)-(/^it/i.test(y.lang)?0:1)||vRank(vQuality(x))-vRank(vQuality(y))||x.name.localeCompare(y.name));
+  const sel=$("voiceSel");sel.innerHTML="";
+  if(!voices.length){sel.innerHTML='<option value="">Voce predefinita del dispositivo</option>';$("voiceCount").textContent="Nessuna voce italiana trovata.";return 0}
+  voices.forEach(v=>{const o=document.createElement("option");o.value=v.voiceURI||v.name;
+    o.textContent=v.name.replace(/\s*\(.*\)\s*$/,"")+" · "+vQuality(v)+(showAll?" · "+v.lang:"");sel.appendChild(o)});
+  const key=st.voiceURI||st.voiceName;
+  let cur=voices.find(v=>(v.voiceURI||v.name)===key);
+  if(!cur){cur=voices.find(v=>/^it/i.test(v.lang))||voices[0];st.voiceURI=cur.voiceURI||cur.name}
+  sel.value=cur.voiceURI||cur.name;
+  const nIt=voices.filter(v=>/^it/i.test(v.lang)).length;
+  $("voiceCount").textContent=nIt+(nIt===1?" voce italiana disponibile.":" voci italiane disponibili.");
+  return all.length;
+}
+function pollVoices(n=0){if(!synth)return;const c=loadVoices();if(n<20&&c===0||n<4)setTimeout(()=>pollVoices(n+1),250)}
+if(synth){synth.onvoiceschanged=loadVoices;pollVoices()}
 function spoken(t){
   return (" "+t+" ").replace(/\(|\)/g,", ")
    .replace(/\bRPM\b/g," giri ").replace(/\bft GND\b/g," piedi dal suolo").replace(/\bGND\b/g," dal suolo")
@@ -223,7 +249,7 @@ function say(text,{force=false}={}){
   synth.cancel();
   const u=new SpeechSynthesisUtterance(spoken(text));
   u.lang="it-IT";u.rate=+st.rate||1;
-  const v=voices.find(v=>v.name===st.voiceName);if(v)u.voice=v;
+  const v=voices.find(v=>(v.voiceURI||v.name)===(st.voiceURI||st.voiceName));if(v){u.voice=v;u.lang=v.lang}
   synth.speak(u);
 }
 const itemText=(s,i)=>{const [l,v]=DATA[s][1][i];return l+". "+v};
@@ -309,7 +335,9 @@ $("startBtn").onclick=()=>{st.voice=true;setVoiceBtn();save();$("start").hidden=
 $("silentBtn").onclick=()=>{st.voice=false;setVoiceBtn();save();$("start").hidden=true;keepAwake()};
 $("setBtn").onclick=()=>{loadVoices();$("settings").hidden=false};
 $("closeSet").onclick=()=>$("settings").hidden=true;
-$("voiceSel").onchange=e=>{st.voiceName=e.target.value;save()};
+$("voiceSel").onchange=e=>{st.voiceURI=e.target.value;save();say("Porte. Chiuse e bloccate.",{force:true})};
+$("allLang").onchange=()=>loadVoices();
+$("reloadVoices").onclick=()=>pollVoices();
 $("rate").oninput=e=>{st.rate=+e.target.value;save()};
 $("test").onclick=()=>say("Porte. Chiuse e bloccate.",{force:true});
 function applyTheme(){if(st.theme)document.documentElement.setAttribute("data-theme",st.theme);else document.documentElement.removeAttribute("data-theme");$("theme").value=st.theme||""}

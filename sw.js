@@ -1,5 +1,5 @@
 // Checklist RV-10: salva l'app sul dispositivo per l'uso senza rete
-const CACHE = "rv10-checklist-v2";
+const CACHE = "rv10-checklist-v5";
 const FILES = ["./", "index.html", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
