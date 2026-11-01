@@ -99,6 +99,7 @@ footer button:active{transform:scale(.97)}
 .sheet label{display:flex;flex-direction:column;gap:6px;font-weight:600}
 .sheet select,.sheet input{font:inherit;min-height:44px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);padding:0 10px}
 .row{display:flex;gap:10px;flex-wrap:wrap}
+.sheet p.ver{font-family:var(--f-mono);font-size:12px}
 .sheet label.check{flex-direction:row;align-items:center;gap:10px;font-weight:500}
 .sheet label.check input{width:24px;height:24px;min-height:0}
 .sheet .box{max-height:calc(100% - 20px);overflow-y:auto}
@@ -158,6 +159,7 @@ footer button:active{transform:scale(.97)}
     <label for="theme">Aspetto<select id="theme"><option value="">Come il sistema</option><option value="dark">Notte (scuro)</option><option value="light">Giorno (chiaro)</option></select></label>
     <p>Tasti per pulsantiera Bluetooth o tastiera: Spazio/Invio = conferma la voce corrente, ← = Indietro, → = Salta, R = Rileggi.</p>
     <div class="row"><button id="test">Prova voce</button><button class="danger" id="resetSec">Azzera sezione</button></div>
+    <p class="ver">Versione 7 · 1 novembre 2026 · foto rullaggio</p>
     <div class="row"><button class="danger" id="resetAll">Azzera tutto</button><button class="primary" id="closeSet">Chiudi</button></div>
   </div>
 </div>
@@ -207,7 +209,7 @@ const DATA = [
 const $=id=>document.getElementById(id);
 const PHOTO_SEC=DATA.findIndex(s=>s[0]==="Rullaggio");
 const PHOTO_MSG="Bene! Potete ora procedere al rullaggio.";
-const KEY="rv10-checklist-v5";
+const KEY="rv10-checklist-v7";
 let st={sec:0,cur:0,done:DATA.map(s=>s[1].map(()=>false)),voice:true,rate:1,voiceName:"",theme:""};
 try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.done&&s.done.length===DATA.length&&s.done.every((d,i)=>d.length===DATA[i][1].length))st=Object.assign(st,s)}catch(e){}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
@@ -368,7 +370,12 @@ $("rate").value=st.rate;setVoiceBtn();applyTheme();render(false);
 </script>
 
 <script>
-if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
+if("serviceWorker" in navigator){
+  let reloaded=false;
+  navigator.serviceWorker.addEventListener("controllerchange",()=>{if(!reloaded){reloaded=true;location.reload()}});
+  window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>r.update()).catch(()=>{}));
+  document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")navigator.serviceWorker.getRegistration().then(r=>r&&r.update()).catch(()=>{})});
+}
 </script>
 </body>
 </html>
