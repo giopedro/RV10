@@ -1,5 +1,5 @@
 // Checklist RV-10: con internet carica sempre la versione più recente, senza rete usa la copia salvata
-const CACHE = "rv10-checklist-v7";
+const CACHE = "rv10-checklist-v8";
 const FILES = ["./", "index.html", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE)

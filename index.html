@@ -159,7 +159,7 @@ footer button:active{transform:scale(.97)}
     <label for="theme">Aspetto<select id="theme"><option value="">Come il sistema</option><option value="dark">Notte (scuro)</option><option value="light">Giorno (chiaro)</option></select></label>
     <p>Tasti per pulsantiera Bluetooth o tastiera: Spazio/Invio = conferma la voce corrente, ← = Indietro, → = Salta, R = Rileggi.</p>
     <div class="row"><button id="test">Prova voce</button><button class="danger" id="resetSec">Azzera sezione</button></div>
-    <p class="ver">Versione 7 · 1 novembre 2026 · foto rullaggio</p>
+    <p class="ver">Versione 8 · 4 novembre 2026</p>
     <div class="row"><button class="danger" id="resetAll">Azzera tutto</button><button class="primary" id="closeSet">Chiudi</button></div>
   </div>
 </div>
@@ -167,31 +167,32 @@ footer button:active{transform:scale(.97)}
 <script>
 const DATA = [
  ["Prima dell'avviamento motore", [
-  ["Porte","CHIUSE e bloccate"],["Sedili, cinture di sicurezza","REGOLATI e ALLACCIATI"],["Main BAT e tutti gli interruttori","OFF"],
-  ["Freno di parcheggio","INSERITO"],["Controllo fusibili e magnetotermici","tutti INSERITI"],["Manetta","TUTTA INDIETRO"],["Leva miscela","TUTTA INDIETRO"],
-  ["Leva elica","TUTTA AVANTI"],["Briefing sicurezza","OK"]]],
+  ["Porte, sedili e cinture","Porte CHIUSE e bloccate, cinture REGOLATE e ALLACCIATE"],
+  ["Interruttori e magnetotermici","Tutti gli interruttori spenti e controllo magnetotermici inseriti"],
+  ["Freno di parcheggio","INSERITO"],
+  ["Manetta, miscela ed elica","Controllo manetta e miscela chiusi indietro e passo elica tutto avanti"],
+  ["Briefing sicurezza","OK"]]],
  ["Avviamento motore", [
   ["Interruttore Master e Avionica","Accendere sequenzialmente"],["Indicatore batteria principale","Settore giallo o verde"],
-  ["ACP (Audio Control Panel)","verificare e impostare COM 2"],["Allineamento radio COM2 su Garmin G3X","premere 2 volte il tasto «Continue» su Garmin GTN"],
-  ["Flap","SETTARE 1ª TACCA"],["Selettore carburante","SERBATOIO PIÙ VUOTO"],["Luci strobo","ON"],["Manetta","leggermente aperta"],
-  ["Leva miscela","avanti TUTTA RICCA"],["Pompa carburante","ON 3-4 secondi poi OFF"],["Leva miscela","TUTTA INDIETRO"],
+  ["Pannello Audio","verificare e impostare COM 2"],["Allineamento radio COM2 su Garmin G3X","premere 2 volte il tasto «Continue» su Garmin GTN"],
+  ["Flap","SETTARE 1ª TACCA"],["Selettore carburante","SERBATOIO PIÙ VUOTO"],["Luci strobo","ON"],
+  ["Manetta e miscela","Manetta leggermente aperta e leva miscela avanti tutta ricca"],
+  ["Pompa carburante","ON 3-4 secondi poi OFF"],["Leva miscela","TUTTA INDIETRO"],
   ["Pulsanti accensione","ON ENTRAMBI"],["Area","LIBERA"],
-  ["Tasto rosso START","Spingi per alcuni secondi. Appena il motore tende ad avviarsi porta la leva miscela tutta avanti e regola i giri motore a 1000 RPM"],
+  ["START motore","Seguire sequenza di avviamento"],
   ["Pressione olio","AUMENTO ENTRO 30 secondi"]]],
  ["Dopo l'avviamento motore", [
-  ["Indicatore batteria principale","13 - 14 Volt"],["Interruttore Gener","ON"],["Indicatore AMP","da -2 a 0"],
-  ["Interruttore batteria di riserva","ON"],["Indicatore batteria principale","Settore verde"],["Indicatore batteria di riserva","Settore verde"],
-  ["Luci di navigazione","ON"],["Luci strobo verificate","ON"],["Transponder","ON e SBY"],["Altimetro","IMPOSTATO"],["Trim","neutri o secondo necessità"]]],
+  ["Indicatore batteria principale","13 - 14 Volt"],["Accensione interruttore Generatore e Batteria di riserva","ON"],["Indicatore AMP","da -2 a 0"],
+  ["Luci di navigazione","ON"],["Transponder","ON e SBY"],["Altimetro","IMPOSTATO"],["Trim","neutri o secondo necessità"]]],
  ["Rullaggio", [
   ["Strumenti di volo","VERIFICATI"],["Luce Taxi","ON"],["Freno di parcheggio","DISINSERITO"],["Freni","VERIFICATI"]]],
  ["Punto attesa - Prova motore", [
-  ["Selettore carburante","SERBATOIO PIÙ PIENO"],["Temperatura olio","SETTORE VERDE o comunque dopo 10 min"],["Pressione olio","SETTORE VERDE"],
-  ["Manetta","2000 RPM"],["Pulsanti magneti","spegnere alternativamente 2-3 secondi e verificare perdita di giri"],
-  ["Elica","CICLARE DUE VOLTE (caduta max 500 RPM)"]]],
+  ["Selettore carburante","SERBATOIO PIÙ PIENO"],["Verifica temperatura e pressione olio","SETTORE VERDE (o comunque dopo 10 min)"],
+  ["Prova motore","Avvio sequenza di controllo motore, magneti e passo elica"]]],
  ["Punto attesa - Prima del decollo", [
-  ["Porte, sedili, cinture di sicurezza","VERIFICATI"],["Comandi di volo","LIBERI"],["Pompa carburante","ON - spia verde"],
-  ["Luci navigazione","tutte ON"],["Flap","1 tacca"],["Riscaldamento Pitot","SECONDO NECESSITÀ"],["Briefing","PROCEDURE DI EMERGENZA"],
-  ["Freno di parcheggio","DISINSERITO"]]],
+  ["Porte, sedili, cinture di sicurezza","VERIFICATI"],["Comandi di volo","LIBERI"],["Pompa carburante e utenze luci","tutte ON"],
+  ["Flap","1 tacca"],["Transponder, olio e timer","Settare Transponder su ALT - Aprire parzializzatore olio - Avviare timer"],
+  ["Briefing","PROCEDURE DI EMERGENZA"],["Freno di parcheggio","DISINSERITO"]]],
  ["Alla quota di sicurezza", [
   ["Flap 300 / 500 ft GND","FLAP tutto SU"],["Luci WDG","OFF"],["Luce rullaggio","OFF"],["Luce atterraggio","OFF"],
   ["Pompa carburante 1000 ft GND","OFF"],["Potenza","MAP 23 poi RPM sotto 2400"]]],
@@ -209,7 +210,7 @@ const DATA = [
 const $=id=>document.getElementById(id);
 const PHOTO_SEC=DATA.findIndex(s=>s[0]==="Rullaggio");
 const PHOTO_MSG="Bene! Potete ora procedere al rullaggio.";
-const KEY="rv10-checklist-v7";
+const KEY="rv10-checklist-v8";
 let st={sec:0,cur:0,done:DATA.map(s=>s[1].map(()=>false)),voice:true,rate:1,voiceName:"",theme:""};
 try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.done&&s.done.length===DATA.length&&s.done.every((d,i)=>d.length===DATA[i][1].length))st=Object.assign(st,s)}catch(e){}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
